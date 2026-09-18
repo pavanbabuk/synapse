@@ -1,0 +1,23 @@
+(fn sum_squares ((n i32)) i32
+  (let total i32 0)
+  (for i n
+    (set total (+ total (* i i))))
+  (ret total))
+
+(fn collatz_steps ((n i32)) i32
+  (let steps i32 0)
+  (loop (> n 1)
+    (if (== (% n 2) 0)
+    (do
+      (set n (/ n 2)))
+    (do
+      (set n (+ (* 3 n) 1))))
+    (set steps (+ steps 1)))
+  (ret steps))
+
+(fn main () i32
+  (let sq i32 (call sum_squares 100))
+  (println "Sum of squares (0..99) =" sq)
+  (let steps i32 (call collatz_steps 27))
+  (println "Collatz steps for 27 =" steps)
+  (ret 0))

@@ -1,0 +1,25 @@
+;; Synapse (SYN-IR) High-performance prime counter
+(fn is_prime ((n i32)) bool
+  (if (<= n 1) (ret false) 0)
+  (if (<= n 3) (ret true) 0)
+  (if (== (% n 2) 0) (ret false) 0)
+  (let d i32 3)
+  (loop (<= (* d d) n)
+    (if (== (% n d) 0)
+      (ret false)
+      0)
+    (set d (+ d 2)))
+  (ret true))
+
+(fn count_primes ((limit i32)) i32
+  (let count i32 0)
+  (for i limit
+    (if (call is_prime i)
+      (set count (+ count 1))
+      0))
+  (ret count))
+
+(fn main () i32
+  (let total i32 (call count_primes 20000))
+  (println "Total primes under 20,000 =" total)
+  (ret 0))
