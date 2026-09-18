@@ -29,6 +29,7 @@ Commands:
     syn build <file.syn|file.py> [out]  Compile to freestanding native binary (clang -O3)
     syn transpile <file.py> [out.syn]   Convert Python file/library into Synapse IR
     syn project <file.syn>              Project/Decompile Synapse IR to clean Python
+    syn check <file.syn>                Machine-readable JSON repair diagnostics for AI agents
     syn bench                           Run live performance & memory benchmarks
     """)
 
@@ -81,6 +82,8 @@ def main():
             out_bin = out_arg or "a.out"
             subprocess.run(["python3", SYNAPSE_CORE, "build", target_file, out_bin])
 
+        elif cmd == 'check':
+            subprocess.run(['python3', SYNAPSE_CORE, 'check', target_file])
         elif cmd == 'project':
             subprocess.run(["python3", SYNAPSE_CORE, "project", target_file])
 

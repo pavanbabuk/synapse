@@ -543,12 +543,112 @@ class HumanProjector:
         return "\n".join(lines)
 
 # ==========================================
-# 5. CLI INTERFACE
+# 5. MACHINE-READABLE REPAIR LINTER
+# ==========================================
+
+import json
+
+class Linter:
+    """Performs static checks and emits structured JSON repair recommendations for AI agents."""
+    def __init__(self):
+        self.diagnostics = []
+
+    def check(self, ast: List[Any]) -> List[dict]:
+        defined_fns = set()
+        for node in ast:
+            if isinstance(node, list) and len(node) > 1 and node[0].value == 'fn':
+                defined_fns.add(node[1].value)
+
+        for node in ast:
+            if isinstance(node, list) and len(node) > 1 and node[0].value == 'fn':
+                fn_name = node[1].value
+                known_vars = set([p[0].value for p in node[2]])
+                for stmt in node[4:]:
+                    self._check_stmt(stmt, known_vars, defined_fns, fn_name)
+
+        return self.diagnostics
+
+    def _check_stmt(self, node: Any, known_vars: set, defined_fns: set, fn_name: str):
+        if not isinstance(node, list) or len(node) == 0:
+            return
+
+        op = node[0].value
+        if op == 'let':
+            vname = node[1].value
+            known_vars.add(vname)
+            self._check_expr(node[3], known_vars, defined_fns, fn_name)
+        elif op == 'set':
+            vname = node[1].value
+            if vname not in known_vars:
+                self.diagnostics.append({
+                    "status": "error",
+                    "error_type": "undefined_variable",
+                    "function": fn_name,
+                    "target": vname,
+                    "message": f"Variable '{vname}' is mutated before being declared.",
+                    "repair_plan": {
+                        "action": "insert_declaration",
+                        "suggested_fix": f"(let {vname} i32 {node[2].value if isinstance(node[2], Token) else '0'})"
+                    }
+                })
+            self._check_expr(node[2], known_vars, defined_fns, fn_name)
+        elif op == 'call':
+            called_fn = node[1].value
+            if called_fn not in defined_fns:
+                self.diagnostics.append({
+                    "status": "error",
+                    "error_type": "undefined_function",
+                    "function": fn_name,
+                    "target": called_fn,
+                    "message": f"Function '{called_fn}' is called but not defined.",
+                    "repair_plan": {
+                        "action": "declare_function_stub",
+                        "suggested_fix": f"(fn {called_fn} () void ...)"
+                    }
+                })
+            for arg in node[2:]:
+                self._check_expr(arg, known_vars, defined_fns, fn_name)
+        elif op == 'for':
+            vname = node[1].value
+            for_vars = set(known_vars)
+            for_vars.add(vname)
+            self._check_expr(node[2], known_vars, defined_fns, fn_name)
+            for stmt in node[3:]:
+                self._check_stmt(stmt, for_vars, defined_fns, fn_name)
+        elif op in ('if', 'loop', 'do'):
+            for sub in node[1:]:
+                self._check_stmt(sub, known_vars, defined_fns, fn_name)
+
+    def _check_expr(self, node: Any, known_vars: set, defined_fns: set, fn_name: str):
+        if isinstance(node, Token):
+            if node.type == 'SYMBOL' and node.value not in known_vars and node.value not in ('true', 'false'):
+                self.diagnostics.append({
+                    "status": "error",
+                    "error_type": "undefined_symbol",
+                    "function": fn_name,
+                    "target": node.value,
+                    "message": f"Undefined symbol '{node.value}' referenced in expression.",
+                    "repair_plan": {
+                        "action": "declare_variable",
+                        "suggested_fix": f"(let {node.value} i32 0)"
+                    }
+                })
+        elif isinstance(node, list) and len(node) > 0:
+            head = node[0].value
+            if head == 'call':
+                self._check_stmt(node, known_vars, defined_fns, fn_name)
+            else:
+                for sub in node[1:]:
+                    self._check_expr(sub, known_vars, defined_fns, fn_name)
+
+
+# ==========================================
+# 6. CLI INTERFACE
 # ==========================================
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: synapse.py <run|build|project|c-code> <file.syn> [output_binary]")
+        print("Usage: synapse.py <run|build|project|check|c-code> <file.syn> [output_binary]")
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -591,9 +691,17 @@ def main():
         projector = HumanProjector()
         print(projector.project(ast))
 
+    elif cmd == 'check':
+        linter = Linter()
+        diags = linter.check(ast)
+        print(json.dumps({'diagnostics': diags, 'count': len(diags)}, indent=2))
+        if len(diags) > 0:
+            sys.exit(2)
+
     else:
         print(f"Unknown command: {cmd}")
         sys.exit(1)
 
 if __name__ == '__main__':
     main()
+

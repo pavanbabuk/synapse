@@ -1,0 +1,80 @@
+{
+  "name": "Synapse",
+  "version": "0.2.0",
+  "design_target": "AI Agents, LLMs, and Ultra-Low-Resource Freestanding Execution",
+  "semantics": {
+    "ast_notation": "Unambiguous prefix S-expression",
+    "memory_model": "Freestanding stack buffers with deterministic bounds (zero GC, zero runtime engine)",
+    "primary_target": "Native C99 compiled via clang -O3 (<1.6MB RAM, 20x faster than interpreted languages)",
+    "secondary_target": "Instant in-memory nano-interpreter for development and linting",
+    "supported_types": ["i32", "i64", "f64", "bool", "str", "void"]
+  },
+  "forms": [
+    {
+      "op": "fn",
+      "syntax": "(fn <name> ((<param1> <type1>) ...) <ret_type> <body...>)",
+      "description": "Defines a pure typed function."
+    },
+    {
+      "op": "let",
+      "syntax": "(let <name> <type> <init_expr>)",
+      "description": "Declares an immutable variable binding."
+    },
+    {
+      "op": "set",
+      "syntax": "(set <name> <new_expr>)",
+      "description": "Mutates an existing variable binding."
+    },
+    {
+      "op": "do",
+      "syntax": "(do <expr1> <expr2> ...)",
+      "description": "Sequential block evaluated in order, yielding the value of the final expression."
+    },
+    {
+      "op": "if",
+      "syntax": "(if <condition> (do <then_exprs...>) (do <else_exprs...>))",
+      "description": "Deterministic branch without dangling else ambiguity."
+    },
+    {
+      "op": "loop",
+      "syntax": "(loop <condition> <body...>)",
+      "description": "While-loop construct executing body as long as condition evaluates to true."
+    },
+    {
+      "op": "for",
+      "syntax": "(for <var_name> <count_expr> <body...>)",
+      "description": "Fixed integer range loop iterating from 0 to count - 1."
+    },
+    {
+      "op": "call",
+      "syntax": "(call <fn_name> <arg1> <arg2> ...)",
+      "description": "Invokes a declared function."
+    },
+    {
+      "op": "ret",
+      "syntax": "(ret <expr>)",
+      "description": "Returns value from enclosing function."
+    },
+    {
+      "op": "println",
+      "syntax": "(println <arg1> <arg2> ...)",
+      "description": "Standard output with newline."
+    }
+  ],
+  "operators": {
+    "arithmetic": ["+", "-", "*", "/", "%"],
+    "comparison": ["==", "!=", "<", "<=", ">", ">="],
+    "logical": ["and", "or", "not"]
+  },
+  "canonical_examples": [
+    {
+      "name": "fibonacci",
+      "syn": "(fn fib ((n i32)) i32\n  (if (<= n 1)\n    (ret n)\n    (ret (+ (call fib (- n 1))\n            (call fib (- n 2))))))\n\n(fn main () i32\n  (let res i32 (call fib 20))\n  (println \"Result:\" res)\n  (ret 0))"
+    },
+    {
+      "name": "collatz",
+      "syn": "(fn collatz_steps ((n i32)) i32\n  (let steps i32 0)\n  (loop (> n 1)\n    (if (== (% n 2) 0)\n      (do (set n (/ n 2)))\n      (do (set n (+ (* 3 n) 1))))\n    (set steps (+ steps 1)))\n  (ret steps))\n\n(fn main () i32\n  (let s i32 (call collatz_steps 27))\n  (println \"Steps:\" s)\n  (ret 0))"
+    }
+  ],
+  "agent_instructions": "When asked to solve logic tasks in Synapse, emit only valid S-expressions adhering to the forms above. Avoid markdown formatting inside strings. Never invent undeclared syntax forms."
+}

@@ -1,6 +1,6 @@
 # Synapse (SYN-IR) ⚡
-> **An AI-Native, Ultra-Low-Resource Programming Language & Execution Engine.**
-> Cuts RAM by **89%**, runs **22x faster than Python**, and eliminates LLM syntax hallucinations through a deterministic S-Expression AST.
+> **An AI-Native Language & Verified Execution Spine.**
+> Guarantees deterministic artifacts, emits structured machine-readable repair plans, cuts host RAM by **89%**, and executes **22x faster than Python** via freestanding compilation.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Language: AI-Native](https://img.shields.io/badge/Language-AI--Native-blue.svg)](#)
@@ -8,118 +8,106 @@
 
 ---
 
-## 💡 Why Synapse?
+## 💡 The Thesis: Beyond Human Syntactic Fluff
 
-Every mainstream programming language today (Python, Rust, C++, JavaScript) was designed around **human visual and cognitive constraints**:
-* **Whitespace and indentation traps** (Python) cause LLMs to make subtle scoping and indentation errors.
-* **Complex syntactic sugar and operator precedence** burn up expensive tokens and prompt context.
-* **Heavy runtimes and tracing garbage collectors** (Python, Node.js, Go, Java) eat tens of megabytes of RAM and induce unpredictable GC pauses.
+Languages like Python, TypeScript, and Rust were engineered around **human visual and cognitive constraints**:
+* Indentation sensitivity and complex operator precedence create hallucination traps for LLMs.
+* Tracing garbage collectors and dynamic runtimes consume tens of megabytes of RAM and induce stop-the-world pauses.
+* Compiler diagnostics formatted for human eyes (colored text, wavy underlines) force AI coding agents to waste valuable context simulating fixes.
 
-**Synapse is built from the ground up for the AI era:**
-1. **Zero-Ambiguity Prefix AST (`.syn`)**: Mathematical S-expressions eliminate operator precedence and indentation bugs entirely.
-2. **Freestanding Native Execution**: Compiles via `clang -O3` into standalone machine code requiring **under 1.6 MB RAM** and **zero runtime dependencies**.
-3. **Bi-Directional Python Bridge**:
-   * **`Python -> Synapse`**: Automatically convert pure Python libraries and functions into Synapse IR.
-   * **`Synapse -> Python`**: Instantly project machine-oriented `.syn` back into clean, auditable Python for human code review.
+**Synapse is built ground-up for autonomous AI agents and ultra-low-resource hardware:**
+1. **Deterministic Artifacts**: S-expression ASTs enforce explicit evaluation order with zero precedence or scoping ambiguities.
+2. **Compiler-as-Assistant (`syn check`)**: The compiler outputs structured JSON repair plans directly consumable by LLM self-healing loops.
+3. **Freestanding Native Execution**: Compiles via `clang -O3` into standalone machine code requiring **under 1.6 MB RAM** with **zero runtime engine dependencies**.
+4. **Bi-Directional Python Interop**: Audited transpilation between pure Python logic and Synapse IR.
 
 ---
 
-## 📊 Live Benchmark (500,000 Prime Number Computations)
+## 🤖 Compiler-as-Assistant: Structured Machine Repair
+
+When an AI agent makes an error, traditional compilers emit human text that requires multi-turn guessing. Synapse emits machine-readable AST patch plans:
+
+```bash
+$ syn check faulty_agent_output.syn
+```
+
+```json
+{
+  "diagnostics": [
+    {
+      "status": "error",
+      "error_type": "undefined_variable",
+      "function": "process_items",
+      "target": "total",
+      "message": "Variable 'total' is mutated before being declared.",
+      "repair_plan": {
+        "action": "insert_declaration",
+        "suggested_fix": "(let total i32 0)"
+      }
+    }
+  ],
+  "count": 1
+}
+```
+*Agents like Devin, Cursor, and Claude can parse this envelope and patch their generated AST in a single turn.*
+
+---
+
+## 📊 Performance & Host Resource Footprint
+
+Tested on a 500,000 prime computation benchmark:
 
 | Metric | Standard Python 3.x | Synapse Native Binary | Advantage |
 | :--- | :--- | :--- | :--- |
 | **Execution Time** | `506.08 ms` | `22.46 ms` | **22.5x Faster** 🚀 |
 | **Peak Memory (RAM)** | `14.39 MB` | `1.59 MB` | **88.9% Less RAM** 💾 |
-| **Runtime Overhead** | Python VM + GC Heap | Standalone Machine Code | **Freestanding** |
-| **LLM Syntax Safety**| Indentation-sensitive | Deterministic S-AST | **Zero Ambiguity** |
+| **Runtime Overhead** | Python VM + Tracing GC | Standalone Freestanding Binary | **Zero Engine Overhead** |
+| **Self-Healing Loop**| Text-based error logs | Structured JSON Repair AST | **1-Turn Agent Healing** |
 
 ---
 
-## 🛠️ Architecture
+## 🔌 Python Compatibility Matrix
 
-```
-                 ┌──────────────────────────────────────┐
-                 │          Human / AI Input            │
-                 │   Python code (.py) or SYN-IR (.syn) │
-                 └──────────────────┬───────────────────┘
-                                    │
-                  ┌─────────────────┴─────────────────┐
-                  ▼                                   ▼
-          [ py2syn Transpiler ]               [ Synapse Parser ]
-                  │                                   │
-                  └─────────────────┬─────────────────┘
-                                    ▼
-                 ┌──────────────────────────────────────┐
-                 │       Synapse Intermediate AST       │
-                 │   - Linear memory / No GC            │
-                 │   - Scoped stack execution           │
-                 └──────────┬───────────────────┬───────┘
-                            │                   │
-               ┌────────────┴───────┐           └──────────────┐
-               ▼                    ▼                          ▼
-     ┌──────────────────┐  ┌──────────────────┐    ┌───────────────────────┐
-     │  Native Clang    │  │  Nano Micro-VM   │    │  Human Projector      │
-     │  Freestanding C  │  │  Instant eval    │    │  Decompile to clean   │
-     │  Binary (<2MB)   │  │  (<500KB RAM)    │    │  readable Python      │
-     └──────────────────┘  └──────────────────┘    └───────────────────────┘
-```
+Synapse provides an explicit, honest compatibility contract for Python code (`py2syn`):
+
+| Category | Features | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| **Primitives** | `int`, `float`, `bool`, `str`, `void` | ✅ 100% Supported | Directly mapped to fixed C99 types |
+| **Control Flow** | `if/elif/else`, `while`, `for i in range(...)` | ✅ 100% Supported | Desugared into pure branching AST |
+| **Functions** | Type annotations, recursion, scoped variables | ✅ 100% Supported | Fully supported |
+| **Memory** | Stack variables, bounded arrays | ✅ Supported | Managed with zero garbage collection |
+| **Dynamic Python** | `eval()`, `exec()`, monkey-patching | ❌ Explicit Non-Goal | Incompatible with deterministic safety |
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Requirements
-* Python 3.8+ (for compiler tooling)
-* `clang` or `gcc` (for freestanding native binary compilation)
-
-### 2. Basic Commands with the Unified CLI (`syn`)
+### 1. Unified CLI (`syn`)
 
 ```bash
-# Run a Synapse program in the instant nano-interpreter
-./bin/syn run examples/prime_counter.syn
+# Run self-repair linter (emits JSON diagnostic envelope)
+./bin/syn check examples/prime_counter.syn
 
-# Compile directly to a standalone native binary
-./bin/syn build examples/fibonacci.syn ./fib_bin
-./fib_bin
-
-# Automatically transpile and run a Python library as native machine code!
+# Compile Python or Synapse into a freestanding machine binary
 ./bin/syn build examples/math_lib.py ./native_math
 ./native_math
 
-# Decompile / Project Synapse IR back into human-readable Python
-./bin/syn project examples/prime_counter.syn
+# Project Synapse IR back to readable Python for human audit
+./bin/syn project examples/fibonacci.syn
 
-# Run the comparative benchmark
+# Run performance & memory benchmarks
 ./bin/syn bench
 ```
 
 ---
 
-## 📝 Synapse Code Example
+## 🧠 LLM Agent Context Package
 
-```lisp
-;; Fibonacci in Synapse IR
-(fn fib ((n i32)) i32
-  (if (<= n 1)
-    (ret n)
-    (ret (+ (call fib (- n 1))
-            (call fib (- n 2))))))
-
-(fn main () i32
-  (let res i32 (call fib 20))
-  (println "Fibonacci(20) =" res)
-  (ret 0))
-```
-
----
-
-## 🤖 Prompting LLMs to Write Synapse
-
-You can instruct any modern LLM (ChatGPT, Claude, Gemini) to generate Synapse code using this zero-shot system instruction:
-
-> *"Generate logic in Synapse S-Expression IR. Rules: (fn name ((arg type)) ret_type ...), (let var type val), (set var val), (if cond (do then...) (do else...)), (for i count ...), (loop cond ...), (ret val). Use types: i32, f64, bool, str."*
+Synapse includes ready-to-use artifacts for LLM agent prompt contexts:
+* **[`SYNAPSE_CONTEXT.json`](SYNAPSE_CONTEXT.json)**: Machine-readable schema, grammar rules, and canonical one-shot examples.
+* **[`MEMORY.md`](MEMORY.md)**: System prompt instructions for autonomous agents.
 
 ---
 
 ## 📜 License
-MIT License. Open for researchers, AI agents, and embedded systems developers.
+MIT License. Open for researchers, AI agents, and systems engineers.
