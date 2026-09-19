@@ -3,7 +3,8 @@
 > Guarantees deterministic artifacts, emits structured machine-readable repair plans, cuts host RAM by **89%**, and executes **22x faster than Python** via freestanding compilation.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Language: AI-Native](https://img.shields.io/badge/Language-AI--Native-blue.svg)](#)
+[![Build Status](https://github.com/pavanbabuk/synapse/actions/workflows/ci.yml/badge.svg)](https://github.com/pavanbabuk/synapse/actions)
+[![Status: Experimental Alpha](https://img.shields.io/badge/Status-Experimental%20Alpha%20v0.2.0-orange.svg)](#)
 [![Memory: <2MB RAM](https://img.shields.io/badge/RAM-1.58MB-green.svg)](#)
 
 ---
